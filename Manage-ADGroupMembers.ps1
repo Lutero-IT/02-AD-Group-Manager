@@ -25,6 +25,7 @@ function Read-IndentedLog ($Message) {
 
 # PREDIFINIED WHITELISTS #
 $exitOptions = "exit e" -split" "
+$listGroupsOptions = "list groups l g" -split" "
 
 # STARTING MENU #
 $title = "Active Directory Group Member Manager"
@@ -40,6 +41,7 @@ Write-IndentedLog "Welcome in Group Member Manager!"
 Write-IndentedLog "In this program you can add, remove or get members of any group"
 Write-IndentedLog "present in your Active Directory database."
 Write-IndentedLog "To start, provide name of a an AD group you wish to modify"
+Write-IndentedLog "If you wish to get a list of existing groups in AD, type [List/l] or [Groups/g] (case insensitive)"
 
 # FIRST LOOP #
 while ($true) {
@@ -56,8 +58,19 @@ while ($true) {
     } elseif ($groupName -in $exitOptions) {
         Write-IndentedLog "Chose to exit the program" -BackgroundColor Yellow -ForegroundColor Black
         break
+    } elseif ($groupName -in $listGroupsOptions) {
+        Write-IndentedLog "Getting all groups in Active Directory..."
+        Write-Host ""
+        # HARDCODED VALUE BELOW #
+        $groupsList = Get-ADGroup -Filter * -SearchBase "OU=User Groups,OU=Groups,OU=Camp,DC=oldcamp,DC=gothic,DC=inc"
+        foreach ($group in $groupsList) {
+            Write-IndentedLog $group.Name
+        }
+
+        Write-Host ""
+        Write-IndentedLog "Choose one of the existing groups from the list above to modify or exit the program by typing [Exit/E] (case insensitive)"
     } else {
-        Write-IndentedLog "Checking if group exists in AD database..."
+        Write-IndentedLog "Validating user input..."
         $groupExists = [bool](Get-ADGroup -Filter "Name -eq '$groupName'")
             if ($groupExists) {
                 Write-IndentedLog "$groupName found in Active Directory!" -BackgroundColor Green -ForegroundColor White
@@ -82,7 +95,7 @@ Write-IndentedLog "Program closed" -BackgroundColor Blue -ForegroundColor White
 
 Write while loop that will check wheher $groupName:
 2. is a valid group name, meaning if the group exists in database. If not, inform the user
-and repeat the request or offer exit option. - DO COMMIT
+and repeat the request or offer exit option. - DONE
 2a. In addition to prompt for a group name or exit option, offer to list all the groups in Active Directory
 to user to choose from.
 3. if it is valid, proceed with the program and present main menu. 
