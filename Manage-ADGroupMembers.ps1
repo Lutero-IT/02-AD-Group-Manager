@@ -12,6 +12,12 @@ WHEN YOU WRITE LOGIC AND DO BASIC STYLING, THEN THINK ABOUT DEVELOPING PROGRAM!
 # by adding indentation in the beginning of each message and newline below it
 # for better readability
 
+# SCRIPT PARAMETERS #
+
+param(
+    [string]$OUPath = "OU=User Groups,OU=Groups,OU=Camp,DC=oldcamp,DC=gothic,DC=inc"
+)
+
 $Indent = "`t"
 
 function Write-IndentedLog ($Message) {
@@ -62,7 +68,7 @@ while ($true) {
         Write-IndentedLog "Getting all groups in Active Directory..."
         Write-Host ""
         # HARDCODED VALUE BELOW #
-        $groupsList = Get-ADGroup -Filter * -SearchBase "OU=User Groups,OU=Groups,OU=Camp,DC=oldcamp,DC=gothic,DC=inc"
+        $groupsList = Get-ADGroup -Filter * -SearchBase $OUPath
         foreach ($group in $groupsList) {
             Write-IndentedLog $group.Name
         }
