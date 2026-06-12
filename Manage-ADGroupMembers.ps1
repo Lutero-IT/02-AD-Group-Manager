@@ -67,7 +67,7 @@ while ($true) {
         Write-IndentedLog "Pass valid AD group name or exit the program by typing [Exit/E] (case insensitive)"
     } elseif ($groupName -in $exitOptions) {
         Write-IndentedLog "Chose to exit the program" -BackgroundColor Yellow -ForegroundColor Black
-        break
+        break # breaks FIRST MENU loop #
     } elseif ($groupName -in $listGroupsOptions) {
         Write-IndentedLog "Getting all groups in Active Directory..."
         Write-Host ""
@@ -83,11 +83,11 @@ while ($true) {
         Write-IndentedLog "Validating user input..."
         $groupExists = [bool](Get-ADGroup -Filter "Name -eq '$groupName'")
 
-            if ($groupExists) {
-                Write-IndentedLog "$groupName found in Active Directory!" -BackgroundColor Green -ForegroundColor White
+        if ($groupExists) {
+            Write-IndentedLog "$groupName found in Active Directory!" -BackgroundColor Green -ForegroundColor White
 
-                # SECOND LOOP #
-                while ($true) {
+            # SECOND LOOP #
+            while ($true) {
 
                 # MAIN MENU #
                 $menu = "Main Menu"
@@ -109,6 +109,8 @@ while ($true) {
                 if ($userChoice.Length -eq 0) {
                     Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
                     Write-IndentedLog "Choose one of the available options"
+                
+                # OPTION 1 - ADD MEMBER #
                 } elseif ($userChoice -in $option1) {
                     Write-IndentedLog "Chose Option 1 - Add Member" -BackgroundColor Yellow -ForegroundColor Black
                     
@@ -136,33 +138,95 @@ while ($true) {
                             Write-IndentedLog "'$username' not found in Active Directory database!"  -BackgroundColor Red -ForegroundColor White
                         }
                     }
-                    # WORKS !!!!!!!!!!!!!!
-                    # WRITE CODE AND MAKE ATOMIC COMMIT !!!
 
+                # OPTION 2 - REMOVE MEMBER (or Members!) #
                 } elseif ($userChoice -in $option2) {
                     Write-IndentedLog "Chose Option 2 - Remove Member" -BackgroundColor Yellow -ForegroundColor Black
+
+                    # REMOVE MENU #
+                    $removeMenu = "Remove Menu"
+                    Write-IndentedLog ("="*80)
+                    Write-IndentedLog (" " * ((80 - [int]$menu.Length) / 2 ) ) $removeMenu
+                    Write-IndentedLog ("="*80)
+
+                    while ($true) {
+                        Write-IndentedLog "1. List Group Members [list/users]"
+                        Write-IndentedLog "2. Type Username [user] "
+                        Write-IndentedLog "3. Back to Main Menu [back/menu]"
+                        Write-IndentedLog "Type option number or option word in square brackets (case insensitive)"
+                        $userChoice = Read-IndentedLog "Option"
+
+                        $option1 = "1 one list users"-split" "
+                        $option2 = "2 two user"-split" "
+                        $option3 = "3 three back menu"-split" "
+
+                        if ($userChoice -in $option1) {
+                            Get-ADGroupMember -Identity $groupName | Select-Object Name | Out-Host
+
+                        } elseif ($userChoice -in $option2) {
+                            
+                            # USER VALIDATION LOOP #
+                            while ($true) {
+                                Write-IndentedLog "Provide a member of the '$groupName' group you wish to remove"
+                                $username = Read-IndentedLog "Type username"
+
+                                $membersList = Get-ADGroupMember -Identity $groupName | Select-Object Name -ExpandProperty Name
+
+
+                                if ($username -in $membersList) {                                
+                                    Write-IndentedLog "'$username' is a member of '$groupName' group!"  -BackgroundColor Green -ForegroundColor White
+                                    Write-IndentedLog "Are you sure you want to remove '$username' from the '$groupName' group?"
+                                    $decision = Read-IndentedLog "Type [Yes/y] or [No/n]"
+
+                                    if ($decision -in $yesList) {
+                                        Write-IndentedLog "Removing '$username' from the '$groupName' group..."  -BackgroundColor Yellow -ForegroundColor Black
+                                        Remove-ADGroupMember -Identity $groupName -Members $username
+                                        Write-IndentedLog "Removing member completed sucessfully!" -BackgroundColor Green -ForegroundColor White
+                                    } else {
+                                        Write-IndentedLog "Removing user canceled" -BackgroundColor Yellow -ForegroundColor Black
+                                    }
+
+                                    break # break user validation loop
+
+                                } else {
+                                    Write-IndentedLog "'$username' is not a member of '$groupName' group!" -BackgroundColor Red -ForegroundColor White
+                                }
+                            }
+
+                        } elseif ($userChoice -in $option3) {
+                            Write-IndentedLog "Getting back to Main Menu" -BackgroundColor Yellow -ForegroundColor Black
+                            break # break remove menu loop
+                        } else {
+                            Write-IndentedLog "Passed invalid value!" -BackgroundColor Red -ForegroundColor White
+                            Write-IndentedLog "Choose one of the available options (or exit/go back)"
+                        }
+                    }
+
+                # TO DO: Put PREDEFINIED WHITELISTS IN CORRESPODNING LOOPS, NOT ON THE BEGINNING !!!
+                # leave only universal whitelists like $yeslist!
+
                 } elseif ($userChoice -in $option3) {
                     Write-IndentedLog "Chose Option 3 - Show Group Members" -BackgroundColor Yellow -ForegroundColor Black
                 } elseif ($userChoice -in $option4) {
                     Write-IndentedLog "Chose Option 4 - Choose Other Group" -BackgroundColor Yellow -ForegroundColor Black
-                } elseif ($userChoice -in $option1) {
+                } elseif ($userChoice -in $option5) {
                     Write-IndentedLog "Chose Option 5 - Exit" -BackgroundColor Yellow -ForegroundColor Black
+                    break # breaks MAIN MENU loop
                 } else {
                     Write-IndentedLog "Invalid value!" -BackgroundColor Red -ForegroundColor White
                     Write-IndentedLog "Passed value is not an option list or name"
                     Write-IndentedLog "Choose one of the available options"
                 }
 
-                # make arrows work here or type option number
-                break # breaks second loop, to the first while loop
+            }
+                break # breaks FIRST MENU loop
+                # this break belongs to the if statement
+                # it breaks the nearest while loop and that is the first one
 
-                }
-                break # breaks first loop
-
-            } else {
+        } else {
                 Write-IndentedLog "Group $groupName doesn't exist in Active Directory!" -BackgroundColor Red -ForegroundColor White
                 Write-IndentedLog "Pass valid AD group name or exit the program by typing [Exit/E] (case insensitive)"
-            }        
+        }        
     }
 }
 
@@ -177,5 +241,8 @@ Write-IndentedLog "Program closed" -BackgroundColor Blue -ForegroundColor White
 
 <# TO DO:
 
----------- 
+1. After you finish create options for SINGLE user (Add Member, Remove Member)
+add functionality to add and remove multiple members!
+2. Change all 'Type option number or...' to arrow navigation!
+3. Put -Confirm or -Force parameter to the temove user decision [yes or no]
 #>
