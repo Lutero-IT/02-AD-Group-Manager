@@ -12,14 +12,17 @@ WHEN YOU WRITE LOGIC AND DO BASIC STYLING, THEN THINK ABOUT DEVELOPING PROGRAM!
 # by adding indentation in the beginning of each message and newline below it
 # for better readability
 
-# SCRIPT PARAMETERS #
 
+### HEAD ###
+
+# SCRIPT PARAMETERS #
 param(
     [string]$OUPath = "OU=User Groups,OU=Groups,OU=Camp,DC=oldcamp,DC=gothic,DC=inc"
 )
 
 $Indent = "`t"
 
+# WRAPPER FUNCTIONS #
 function Write-IndentedLog ($Message) {
     Write-Host "${Indent}$Message" @Args
 }
@@ -32,6 +35,11 @@ function Read-IndentedLog ($Message) {
 # PREDIFINIED WHITELISTS #
 $exitOptions = "exit e" -split" "
 $listGroupsOptions = "list groups l g" -split" "
+$option1 = "1 one add" -split" "
+$option2 = "2 two remove" -split" "
+$option3 = "3 three show" -split" "
+$option4 = "4 four choose" -split" "
+$option5 = "5 five exit e" -split" "
 
 # STARTING MENU #
 $title = "Active Directory Group Member Manager"
@@ -51,13 +59,8 @@ Write-IndentedLog "If you wish to get a list of existing groups in AD, type [Lis
 
 # FIRST LOOP #
 while ($true) {
-    $groupName = Read-IndentedLog
+    $groupName = Read-IndentedLog "Type group name or list the groups"
 
-<# CODE TO TEST INPUT - delete in final version of the script!!!
-    Write-Host "The input: $groupname"
-    Write-Host "The type: " $groupname.GetType()
-    Write-Host "The length: " $groupName.Length
-#>
     if ($groupName.Length -eq 0) {
         Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
         Write-IndentedLog "Pass valid AD group name or exit the program by typing [Exit/E] (case insensitive)"
@@ -67,8 +70,8 @@ while ($true) {
     } elseif ($groupName -in $listGroupsOptions) {
         Write-IndentedLog "Getting all groups in Active Directory..."
         Write-Host ""
-        # HARDCODED VALUE BELOW #
         $groupsList = Get-ADGroup -Filter * -SearchBase $OUPath
+
         foreach ($group in $groupsList) {
             Write-IndentedLog $group.Name
         }
@@ -78,9 +81,54 @@ while ($true) {
     } else {
         Write-IndentedLog "Validating user input..."
         $groupExists = [bool](Get-ADGroup -Filter "Name -eq '$groupName'")
+
             if ($groupExists) {
                 Write-IndentedLog "$groupName found in Active Directory!" -BackgroundColor Green -ForegroundColor White
-                break
+
+                # SECOND LOOP #
+                while ($true) {
+
+                # MAIN MENU #
+                $menu = "Main Menu"
+                Write-IndentedLog ("="*80)
+                Write-IndentedLog (" " * ((80 - [int]$menu.Length) / 2 ) ) $menu
+                Write-IndentedLog ("="*80)
+
+                Write-IndentedLog "You are currently editing $groupName group" -BackgroundColor Yellow -ForegroundColor Black
+                Write-IndentedLog "What operation do you want to perform?"
+                Write-IndentedLog "1. Add Member"
+                Write-IndentedLog "2. Remove Member"
+                Write-IndentedLog "3. Show Group Memebers"
+                Write-IndentedLog "4. Choose Other Group"
+                Write-IndentedLog "5. Exit"
+                # make arrows work here or type option number
+
+                $userChoice = Read-IndentedLog "Type option number or first word (case insensitive)"
+
+                if ($userChoice.Length -eq 0) {
+                    Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
+                } elseif ($userChoice -in $option1) {
+                    Write-IndentedLog "Chose Option 1 - Add Member" -BackgroundColor Yellow -ForegroundColor Black
+                } elseif ($userChoice -in $option2) {
+                    Write-IndentedLog "Chose Option 2 - Remove Member" -BackgroundColor Yellow -ForegroundColor Black
+                } elseif ($userChoice -in $option3) {
+                    Write-IndentedLog "Chose Option 3 - Show Group Members" -BackgroundColor Yellow -ForegroundColor Black
+                } elseif ($userChoice -in $option4) {
+                    Write-IndentedLog "Chose Option 4 - Choose Other Group" -BackgroundColor Yellow -ForegroundColor Black
+                } elseif ($userChoice -in $option1) {
+                    Write-IndentedLog "Chose Option 5 - Exit" -BackgroundColor Yellow -ForegroundColor Black
+                } else {
+                    Write-IndentedLog "Invalid value!" -BackgroundColor Red -ForegroundColor White
+                    Write-IndentedLog "Passed value is not an option list or name"
+                    Write-IndentedLog "Choose one of the available options"
+                }
+
+                # make arrows work here or type option number
+                break # breaks second loop, to the first while loop
+
+                }
+                break # breaks first loop
+
             } else {
                 Write-IndentedLog "Group $groupName doesn't exist in Active Directory!" -BackgroundColor Red -ForegroundColor White
                 Write-IndentedLog "Pass valid AD group name or exit the program by typing [Exit/E] (case insensitive)"
