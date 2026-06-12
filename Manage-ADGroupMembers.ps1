@@ -35,6 +35,7 @@ function Read-IndentedLog ($Message) {
 # PREDIFINIED WHITELISTS #
 $exitOptions = "exit e" -split" "
 $listGroupsOptions = "list groups l g" -split" "
+$yesList = "yes y"-split" "
 $option1 = "1 one add" -split" "
 $option2 = "2 two remove" -split" "
 $option3 = "3 three show" -split" "
@@ -107,8 +108,37 @@ while ($true) {
 
                 if ($userChoice.Length -eq 0) {
                     Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
+                    Write-IndentedLog "Choose one of the available options"
                 } elseif ($userChoice -in $option1) {
                     Write-IndentedLog "Chose Option 1 - Add Member" -BackgroundColor Yellow -ForegroundColor Black
+                    
+                    # USER VALIDATION LOOP #
+                    while ($true) {
+                        Write-IndentedLog "Provide existing AD user account you wish to add to the '$groupName' group"
+                        $username = Read-IndentedLog "Type username"
+
+                        try {
+                            Get-ADUser -Identity $username -ErrorAction Stop
+                            Write-IndentedLog "'$username' found in Active Directory database!"  -BackgroundColor Green -ForegroundColor White
+                            Write-IndentedLog "Are you sure you want to add '$username' to the '$groupName' group?"
+                            $decision = Read-IndentedLog "Type [Yes/y] or [No/n]"
+
+                            if ($decision -in $yesList) {
+                                Write-IndentedLog "Adding '$username' to the '$groupName' group..."  -BackgroundColor Yellow -ForegroundColor Black
+                                Add-ADGroupMember -Identity $groupName -Members $username
+                                Write-IndentedLog "Adding member completed sucessfully!" -BackgroundColor Green -ForegroundColor White
+                            } else {
+                                Write-IndentedLog "Adding user canceled" -BackgroundColor Yellow -ForegroundColor Black
+                            }
+
+                            break # break user validation loop
+                        } catch {
+                            Write-IndentedLog "'$username' not found in Active Directory database!"  -BackgroundColor Red -ForegroundColor White
+                        }
+                    }
+                    # WORKS !!!!!!!!!!!!!!
+                    # WRITE CODE AND MAKE ATOMIC COMMIT !!!
+
                 } elseif ($userChoice -in $option2) {
                     Write-IndentedLog "Chose Option 2 - Remove Member" -BackgroundColor Yellow -ForegroundColor Black
                 } elseif ($userChoice -in $option3) {
@@ -147,10 +177,5 @@ Write-IndentedLog "Program closed" -BackgroundColor Blue -ForegroundColor White
 
 <# TO DO:
 
-Write while loop that will check wheher $groupName:
-2. is a valid group name, meaning if the group exists in database. If not, inform the user
-and repeat the request or offer exit option. - DONE
-2a. In addition to prompt for a group name or exit option, offer to list all the groups in Active Directory
-to user to choose from.
-3. if it is valid, proceed with the program and present main menu. 
+---------- 
 #>
