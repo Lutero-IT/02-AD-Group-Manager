@@ -187,7 +187,6 @@ while ($true) {
                                 ForEach-Object -Process {
                                     Write-IndentedLog $_
                                 } 
-                            ##############
 
                         } elseif ($userChoice -in $option2) {
                             
@@ -236,6 +235,14 @@ while ($true) {
 
                 } elseif ($userChoice -in $option3) {
                     Write-IndentedLog "Chose Option 3 - Show Group Members" -BackgroundColor Yellow -ForegroundColor Black
+                    Write-Host ""
+                    Write-IndentedLog "'$groupName' group Members:"
+                    Write-Host ""
+                    Get-ADGroupMember -Identity $groupName | Select-Object Name -ExpandProperty Name |
+                        ForEach-Object -Process {
+                            Write-IndentedLog $_
+                        } 
+
                 } elseif ($userChoice -in $option4) {
                     Write-IndentedLog "Chose Option 4 - Choose Other Group" -BackgroundColor Yellow -ForegroundColor Black
                 } elseif ($userChoice -in $option5) {
