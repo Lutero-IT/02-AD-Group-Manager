@@ -1,12 +1,18 @@
 TO DO:
 
-1. finish option 3 and 4
+1. commit option 4 and make use of the first loop
+delete option 4 loop and redirect it to the first loop
 2. finish formatting and styling
 3. add arrow navigation if possible
+4. add options discussed with gemini ( review chat and note the ideas)
 
 
 TO COMMIT:
-
+# 1: FIXED INFINITE LOOP IN FIRST WHILE LOOP! ADDED Read-IndentedLog that stops the infinite loop !!!
+                    # Make Choose Menu. Options: 1. Type group name 2. List available groups 3. Back to main menu #
+                    # Commit After each option!
+                    # Start with option 3!
+                    # COPY AND PASTE all the structure from the REMOVE OPTION and adjust it to the option 4 goal !!!
 
 DO NOT:
 1.Make loops for yes/no decision for simplicity
