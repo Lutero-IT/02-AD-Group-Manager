@@ -7,12 +7,6 @@
 WHEN YOU WRITE LOGIC AND DO BASIC STYLING, THEN THINK ABOUT DEVELOPING PROGRAM!
 #>
 
-
-# Functions created to change classical Write-Host and Read-Host behaviour
-# by adding indentation in the beginning of each message and newline below it
-# for better readability
-
-
 ### HEAD ###
 
 # SCRIPT PARAMETERS #
@@ -20,9 +14,14 @@ param(
     [string]$OUPath = "OU=User Groups,OU=Groups,OU=Camp,DC=oldcamp,DC=gothic,DC=inc"
 )
 
+# GLOBAL VARIABLES #
 $Indent = "`t"
 
 # WRAPPER FUNCTIONS #
+# Functions created to change classical Write-Host and Read-Host behaviour
+# by adding indentation in the beginning of each message and newline below it
+# for better readability
+
 function Write-IndentedLog ($Message) {
     Write-Host "${Indent}$Message" @Args
 }
@@ -32,21 +31,13 @@ function Read-IndentedLog ($Message) {
     Write-Host ""
 }
 
-# PREDIFINIED WHITELISTS #
+# GLOBAL PREDIFINIED WHITELISTS #
 $exitOptions = "exit e" -split" "
-$listGroupsOptions = "list groups l g" -split" "
 $yesList = "yes y"-split" "
-$option1 = "1 one add" -split" "
-$option2 = "2 two remove" -split" "
-$option3 = "3 three show" -split" "
-$option4 = "4 four choose" -split" "
-$option5 = "5 five exit e" -split" "
+$noList = "no n"-split" "
 
 # STARTING MENU #
 $title = "Active Directory Group Member Manager"
-
-# ================== #
-
 Write-IndentedLog ("="*80)
 Write-IndentedLog (" " * ((80 - [int]$title.Length) / 2 ) ) $title
 Write-IndentedLog ("="*80)
@@ -58,9 +49,13 @@ Write-IndentedLog "present in your Active Directory database."
 Write-IndentedLog "To start, provide name of a an AD group you wish to modify"
 Write-IndentedLog "If you wish to get a list of existing groups in AD, type [List/l] or [Groups/g] (case insensitive)"
 
+$groupName = Read-IndentedLog "Type group name or list the groups"
+
 # FIRST LOOP #
 while ($true) {
-    $groupName = Read-IndentedLog "Type group name or list the groups"
+
+    # WHITELISTS #
+    $listGroupsOptions = "list groups l g" -split" "
 
     if ($groupName.Length -eq 0) {
         Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
@@ -91,18 +86,29 @@ while ($true) {
 
                 # MAIN MENU #
                 $menu = "Main Menu"
+                Write-Host ""
                 Write-IndentedLog ("="*80)
                 Write-IndentedLog (" " * ((80 - [int]$menu.Length) / 2 ) ) $menu
                 Write-IndentedLog ("="*80)
 
-                Write-IndentedLog "You are currently editing $groupName group" -BackgroundColor Yellow -ForegroundColor Black
+                Write-Host ""
+                Write-IndentedLog "You are currently editing '$groupName' group" -BackgroundColor Yellow -ForegroundColor Black
+                Write-Host ""
+
                 Write-IndentedLog "What operation do you want to perform?"
                 Write-IndentedLog "1. Add Member"
                 Write-IndentedLog "2. Remove Member"
                 Write-IndentedLog "3. Show Group Memebers"
                 Write-IndentedLog "4. Choose Other Group"
                 Write-IndentedLog "5. Exit"
-                # make arrows work here or type option number
+                # make arrow navigation here or type option number
+
+                # WHITELISTS #
+                $option1 = "1 one add" -split" "
+                $option2 = "2 two remove" -split" "
+                $option3 = "3 three show" -split" "
+                $option4 = "4 four choose" -split" "
+                $option5 = "5 five exit e" -split" "
 
                 $userChoice = Read-IndentedLog "Type option number or first word (case insensitive)"
 
@@ -119,23 +125,30 @@ while ($true) {
                         Write-IndentedLog "Provide existing AD user account you wish to add to the '$groupName' group"
                         $username = Read-IndentedLog "Type username"
 
-                        try {
-                            Get-ADUser -Identity $username -ErrorAction Stop
-                            Write-IndentedLog "'$username' found in Active Directory database!"  -BackgroundColor Green -ForegroundColor White
-                            Write-IndentedLog "Are you sure you want to add '$username' to the '$groupName' group?"
-                            $decision = Read-IndentedLog "Type [Yes/y] or [No/n]"
+                        if ($username.Length -eq 0) {
+                            Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
+                        } else {
+                            try {
+                                Get-ADUser -Identity $username -ErrorAction Stop
+                                Write-IndentedLog "'$username' found in Active Directory database!"  -BackgroundColor Green -ForegroundColor White
+                                Write-IndentedLog "Are you sure you want to add '$username' to the '$groupName' group?"
+                                $decision = Read-IndentedLog "Type [Yes/y] or [No/n]"
 
-                            if ($decision -in $yesList) {
-                                Write-IndentedLog "Adding '$username' to the '$groupName' group..."  -BackgroundColor Yellow -ForegroundColor Black
-                                Add-ADGroupMember -Identity $groupName -Members $username
-                                Write-IndentedLog "Adding member completed sucessfully!" -BackgroundColor Green -ForegroundColor White
-                            } else {
-                                Write-IndentedLog "Adding user canceled" -BackgroundColor Yellow -ForegroundColor Black
+                                if ($decision -in $yesList) {
+                                    Write-IndentedLog "Adding '$username' to the '$groupName' group..."  -BackgroundColor Yellow -ForegroundColor Black
+                                    Add-ADGroupMember -Identity $groupName -Members $username
+                                    Write-IndentedLog "Adding member completed sucessfully!" -BackgroundColor Green -ForegroundColor White
+                                } elseif ($decision -in $noList) {
+                                    Write-IndentedLog "Adding user canceled" -BackgroundColor Yellow -ForegroundColor Black
+                                } else {
+                                    Write-IndentedLog "Passed Invalid value!" -BackgroundColor Red -ForegroundColor White
+                                    Write-IndentedLog "User joining aborted"
+                                }
+
+                                break # break user validation loop
+                            } catch {
+                                Write-IndentedLog "'$username' not found in Active Directory database!"  -BackgroundColor Red -ForegroundColor White
                             }
-
-                            break # break user validation loop
-                        } catch {
-                            Write-IndentedLog "'$username' not found in Active Directory database!"  -BackgroundColor Red -ForegroundColor White
                         }
                     }
 
@@ -143,13 +156,20 @@ while ($true) {
                 } elseif ($userChoice -in $option2) {
                     Write-IndentedLog "Chose Option 2 - Remove Member" -BackgroundColor Yellow -ForegroundColor Black
 
-                    # REMOVE MENU #
-                    $removeMenu = "Remove Menu"
-                    Write-IndentedLog ("="*80)
-                    Write-IndentedLog (" " * ((80 - [int]$menu.Length) / 2 ) ) $removeMenu
-                    Write-IndentedLog ("="*80)
-
+                    
                     while ($true) {
+
+                        # REMOVE MENU #
+                        $removeMenu = "Remove Menu"
+                        Write-Host ""
+                        Write-IndentedLog ("="*80)
+                        Write-IndentedLog (" " * ((80 - [int]$menu.Length) / 2 ) ) $removeMenu
+                        Write-IndentedLog ("="*80)
+
+                        Write-Host ""
+                        Write-IndentedLog "You are currently editing '$groupName' group" -BackgroundColor Yellow -ForegroundColor Black
+                        Write-Host ""
+
                         Write-IndentedLog "1. List Group Members [list/users]"
                         Write-IndentedLog "2. Type Username [user] "
                         Write-IndentedLog "3. Back to Main Menu [back/menu]"
@@ -161,7 +181,13 @@ while ($true) {
                         $option3 = "3 three back menu"-split" "
 
                         if ($userChoice -in $option1) {
-                            Get-ADGroupMember -Identity $groupName | Select-Object Name | Out-Host
+                            Write-IndentedLog "'$groupName' group Members:"
+                            Write-Host ""
+                            Get-ADGroupMember -Identity $groupName | Select-Object Name -ExpandProperty Name |
+                                ForEach-Object -Process {
+                                    Write-IndentedLog $_
+                                } 
+                            ##############
 
                         } elseif ($userChoice -in $option2) {
                             
@@ -172,24 +198,30 @@ while ($true) {
 
                                 $membersList = Get-ADGroupMember -Identity $groupName | Select-Object Name -ExpandProperty Name
 
-
-                                if ($username -in $membersList) {                                
-                                    Write-IndentedLog "'$username' is a member of '$groupName' group!"  -BackgroundColor Green -ForegroundColor White
-                                    Write-IndentedLog "Are you sure you want to remove '$username' from the '$groupName' group?"
-                                    $decision = Read-IndentedLog "Type [Yes/y] or [No/n]"
-
-                                    if ($decision -in $yesList) {
-                                        Write-IndentedLog "Removing '$username' from the '$groupName' group..."  -BackgroundColor Yellow -ForegroundColor Black
-                                        Remove-ADGroupMember -Identity $groupName -Members $username
-                                        Write-IndentedLog "Removing member completed sucessfully!" -BackgroundColor Green -ForegroundColor White
-                                    } else {
-                                        Write-IndentedLog "Removing user canceled" -BackgroundColor Yellow -ForegroundColor Black
-                                    }
-
-                                    break # break user validation loop
-
+                                if ($username.Length -eq 0) {
+                                    Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
                                 } else {
-                                    Write-IndentedLog "'$username' is not a member of '$groupName' group!" -BackgroundColor Red -ForegroundColor White
+                                    if ($username -in $membersList) {                                
+                                        Write-IndentedLog "'$username' is a member of '$groupName' group!"  -BackgroundColor Green -ForegroundColor White
+                                        Write-IndentedLog "Are you sure you want to remove '$username' from the '$groupName' group?"
+                                        $decision = Read-IndentedLog "Type [Yes/y] or [No/n]"
+
+                                        if ($decision -in $yesList) {
+                                            Write-IndentedLog "Removing '$username' from the '$groupName' group..."  -BackgroundColor Yellow -ForegroundColor Black
+                                            Remove-ADGroupMember -Identity $groupName -Members $username -Confirm:$false
+                                            Write-IndentedLog "Removing member completed sucessfully!" -BackgroundColor Green -ForegroundColor White
+                                        } elseif ($decision -in $noList) {
+                                            Write-IndentedLog "Removing user canceled" -BackgroundColor Yellow -ForegroundColor Black
+                                        } else {
+                                            Write-IndentedLog "Passed Invalid value!" -BackgroundColor Red -ForegroundColor White
+                                            Write-IndentedLog "User removal aborted"
+                                        }
+
+                                        break # break user validation loop
+
+                                    } else {
+                                        Write-IndentedLog "'$username' is not a member of '$groupName' group!" -BackgroundColor Red -ForegroundColor White
+                                    }
                                 }
                             }
 
@@ -201,9 +233,6 @@ while ($true) {
                             Write-IndentedLog "Choose one of the available options (or exit/go back)"
                         }
                     }
-
-                # TO DO: Put PREDEFINIED WHITELISTS IN CORRESPODNING LOOPS, NOT ON THE BEGINNING !!!
-                # leave only universal whitelists like $yeslist!
 
                 } elseif ($userChoice -in $option3) {
                     Write-IndentedLog "Chose Option 3 - Show Group Members" -BackgroundColor Yellow -ForegroundColor Black

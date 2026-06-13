@@ -1,0 +1,18 @@
+TO DO:
+
+-1. Make members list INDENTED! Use custom functions!
+0. DO COMMIT!
+1. finish option 3 and 4
+2. finish formatting and styling
+3. add arrow navigation if possible
+
+TO COMMIT:
+# 1. added $nolist
+# 2. put whitelists in right places, divided lists to GLOBAL and LOCAL ( inside loops )
+# 3. put remove menu in loop
+# 4. put in main menu and remove menu inofrmation about currently edited group
+# 5. added -Confirm:$false to the Remove-ADGroupMember, no dobule confirmation
+# 6. zrób pętle if = null - brak inputu, else -> try / catch dla option 1 - add member
+# 7. zrób pętle if = null - brak inputu, else -> try / catch dla option 2 - remove member
+# 8. formatted listing group members in Remove option
+# DO NOT: Make loops for yes/no decision for simplicity
