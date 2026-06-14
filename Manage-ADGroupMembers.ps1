@@ -78,7 +78,7 @@ while ($true) {
         Write-IndentedLog "| Active Directory Groups: |"
         Write-Host ""
         foreach ($group in $groupsList) {
-            Write-IndentedLog $group.Name
+            Write-IndentedLog "*" $group.Name
         }
 
         Write-Host ""
@@ -198,7 +198,7 @@ while ($true) {
                             Write-IndentedLog "| '$groupName' group Members: |"
                             Write-Host ""
                             $membersList | ForEach-Object -Process {
-                                    Write-IndentedLog $_
+                                    Write-IndentedLog "* $_"
                                 } 
 
                         } elseif ($userChoice -in $option2) {
@@ -250,7 +250,7 @@ while ($true) {
                     Write-IndentedLog "'$groupName' group Members:"
                     Write-Host ""
                     $membersList | ForEach-Object -Process {
-                            Write-IndentedLog $_
+                            Write-IndentedLog "* $_"
                         } 
 
                 } elseif ($userChoice -in $option4) {

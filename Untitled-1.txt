@@ -1,11 +1,7 @@
 TO DO:
 
-1. Create menu for the first loop ! and make exit option inside Main Menu ( Second Loop) terminate the program. 'exit' command?
-2. finish formatting and styling
 3. add arrow navigation if possible
 4. add options discussed with gemini ( review chat and note the ideas)
-5. there is no mechanism that informs administrator when a user is already a member
-of a group in option 'Add Member'. Fix this. - MAKE A COMMIT RIGHT AFTER THIS !!!
 
 TO COMMIT:
 
