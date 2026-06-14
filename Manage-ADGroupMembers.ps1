@@ -119,6 +119,9 @@ while ($true) {
                 $option4 = "4 four choose" -split" "
                 $option5 = "5 five exit e" -split" "
 
+                # VARIABLES #
+                $membersList = Get-ADGroupMember -Identity $groupName | Select-Object Name -ExpandProperty Name
+
                 $userChoice = Read-IndentedLog "Type option number or first word (case insensitive)"
 
                 if ($userChoice.Length -eq 0) {
@@ -136,6 +139,8 @@ while ($true) {
 
                         if ($username.Length -eq 0) {
                             Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
+                        } elseif ($username -in $membersList) {
+                            Write-IndentedLog "'$username' is already a member of '$groupName' group" -BackgroundColor Red -ForegroundColor White
                         } else {
                             try {
                                 Get-ADUser -Identity $username -ErrorAction Stop | Out-Null
@@ -192,8 +197,7 @@ while ($true) {
                         if ($userChoice -in $option1) {
                             Write-IndentedLog "| '$groupName' group Members: |"
                             Write-Host ""
-                            Get-ADGroupMember -Identity $groupName | Select-Object Name -ExpandProperty Name |
-                                ForEach-Object -Process {
+                            $membersList | ForEach-Object -Process {
                                     Write-IndentedLog $_
                                 } 
 
@@ -203,8 +207,6 @@ while ($true) {
                             while ($true) {
                                 Write-IndentedLog "Provide a member of the '$groupName' group you wish to remove"
                                 $username = Read-IndentedLog "Type username"
-
-                                $membersList = Get-ADGroupMember -Identity $groupName | Select-Object Name -ExpandProperty Name
 
                                 if ($username.Length -eq 0) {
                                     Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
@@ -247,8 +249,7 @@ while ($true) {
                     Write-Host ""
                     Write-IndentedLog "'$groupName' group Members:"
                     Write-Host ""
-                    Get-ADGroupMember -Identity $groupName | Select-Object Name -ExpandProperty Name |
-                        ForEach-Object -Process {
+                    $membersList | ForEach-Object -Process {
                             Write-IndentedLog $_
                         } 
 
