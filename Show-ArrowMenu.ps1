@@ -5,16 +5,28 @@ function Show-ArrowMenu {
 
     # PARAMETER #
     param (
-        [string[]]$menuList = ""
+        [string[]]$Menu = "",
+        [string]$Title = "",
+        [string]$Group = ""
     )
 
     # VARIABLES #
     $pressedKey = ""
     $selectIndex = 0
-    $maxIndex = ($menuList.Length - 1)
+    $maxIndex = ($Menu.Length - 1)
 
     # MAIN BODY #
     while ($pressedKey -ne "Enter") {
+
+        Write-Host ""
+        Write-IndentedLog ("="*80)
+        Write-IndentedLog (" " * ((80 - [int]$Title.Length) / 2 ) ) $Title
+        Write-IndentedLog ("="*80)
+
+
+        Write-Host ""
+        Write-IndentedLog "You are currently editing '$Group' group" -BackgroundColor Yellow -ForegroundColor Black
+        Write-Host ""
         
         if ( $selectIndex -gt $maxIndex ) {
             $selectIndex = 0    
@@ -22,8 +34,8 @@ function Show-ArrowMenu {
             $selectIndex = $maxIndex
         }
 
-        foreach ($option in $menuList) {
-            if ($menuList.IndexOf($option) -eq $selectIndex) {
+        foreach ($option in $Menu) {
+            if ($Menu.IndexOf($option) -eq $selectIndex) {
                 Write-Host $option -BackgroundColor Yellow -ForegroundColor Black
             } else {
                 Write-Host $option -ForegroundColor White
@@ -36,15 +48,11 @@ function Show-ArrowMenu {
         switch ($pressedKey) {
             "UpArrow" {$selectIndex--}
             "DownArrow" {$selectIndex++}
-            "Enter" { $userChoice = $menuList[$selectIndex]}
+            "Enter" { return $selectIndex }
         }
 
         Clear-Host
     }
-
-    # OUTPUT #
-    Write-Host "You chose:" $userChoice
-    return $userChoice
 }
 
 <# TO DO:

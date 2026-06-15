@@ -9,10 +9,13 @@ WHEN YOU WRITE LOGIC AND DO BASIC STYLING, THEN THINK ABOUT DEVELOPING PROGRAM!
 
 ### HEAD ###
 
-# SCRIPT PARAMETERS #
+# SCRIPT PARAMETERS ( must be first in script! only comments before allowed! )#
 param(
     [string]$OUPath = "OU=User Groups,OU=Groups,OU=Camp,DC=oldcamp,DC=gothic,DC=inc"
 )
+
+# IMPORTED FUNCTIONS #
+. ".\Show-ArrowMenu.ps1"
 
 # GLOBAL VARIABLES #
 $Indent = "`t"
@@ -172,36 +175,26 @@ while ($true) {
 
                     
                     while ($true) {
-
+                        
                         # REMOVE MENU #
-                        $removeMenu = "Remove Menu"
-                        Write-Host ""
-                        Write-IndentedLog ("="*80)
-                        Write-IndentedLog (" " * ((80 - [int]$removeMenu.Length) / 2 ) ) $removeMenu
-                        Write-IndentedLog ("="*80)
+                        $optionsList = @(
+                            "1. List Group Members ",
+                            "2. Type Username ",
+                            "3. Back to Main Menu "
+                        )
 
-                        Write-Host ""
-                        Write-IndentedLog "You are currently editing '$groupName' group" -BackgroundColor Yellow -ForegroundColor Black
-                        Write-Host ""
+                        $optionIndex = Show-ArrowMenu -Title "Remove Menu" -Group $groupName -Menu $optionsList
 
-                        Write-IndentedLog "1. List Group Members [list/users]"
-                        Write-IndentedLog "2. Type Username [user] "
-                        Write-IndentedLog "3. Back to Main Menu [back/menu]"
-                        Write-IndentedLog "Type option number or option word in square brackets (case insensitive)"
-                        $userChoice = Read-IndentedLog "Option"
+                        # CHANGE if/else statement to SWITCH if it works
 
-                        $option1 = "1 one list users"-split" "
-                        $option2 = "2 two user"-split" "
-                        $option3 = "3 three back menu"-split" "
-
-                        if ($userChoice -in $option1) {
+                        if ($optionIndex -eq 0) {
                             Write-IndentedLog "| '$groupName' group Members: |"
                             Write-Host ""
                             $membersList | ForEach-Object -Process {
                                     Write-IndentedLog "* $_"
                                 } 
 
-                        } elseif ($userChoice -in $option2) {
+                        } elseif ($optionIndex -eq 1) {
                             
                             # USER VALIDATION LOOP #
                             while ($true) {
@@ -235,12 +228,9 @@ while ($true) {
                                 }
                             }
 
-                        } elseif ($userChoice -in $option3) {
+                        } elseif ($optionIndex -eq 2 ) {
                             Write-IndentedLog "Getting back to Main Menu" -BackgroundColor Yellow -ForegroundColor Black
                             break # break remove menu loop
-                        } else {
-                            Write-IndentedLog "Passed invalid value!" -BackgroundColor Red -ForegroundColor White
-                            Write-IndentedLog "Choose one of the available options (or exit/go back)"
                         }
                     }
 

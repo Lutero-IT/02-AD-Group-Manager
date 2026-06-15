@@ -1,6 +1,7 @@
 TO DO:
 
-3. add arrow navigation if possible
+3. implement arrow-navigation to the program and remove old text-navigation
+DO IT STEP BY STEP! start with first menu, then next, etc.
 4. add options discussed with gemini ( review chat and note the ideas)
 
 TO COMMIT:
