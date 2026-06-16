@@ -49,224 +49,186 @@ Write-IndentedLog "Welcome in Group Member Manager!"
 Write-IndentedLog "In this program you can add, remove or get members of any group"
 Write-IndentedLog "present in your Active Directory database."
 Write-Host ""
-Write-IndentedLog "To start, provide name of a an AD group you wish to modify"
-Write-IndentedLog "or choose one of the other options by typing option number"
-Write-IndentedLog "or option word in square brackets"
+Write-IndentedLog "Choose one of the available options below"
 
 # FIRST LOOP #
-while ($true) {
-    Write-Host ""
-    Write-IndentedLog ("-"*80)
-    Write-IndentedLog "1. List Active Directory Groups [list/groups]"
-    Write-IndentedLog "2. Exit [exit]"
-    Write-IndentedLog ("-"*80)
-    Write-Host ""
-    $groupName = Read-IndentedLog "Type group name or choose other option"
+:firstLoop while ($true) { # OBSOLETE LOOP - REMOVE AFTER YOU FINISH !!!
 
-    # WHITELISTS #
-    $listGroupsOptions = "list groups l g 1 one" -split" "
-    $exitOptions = "exit e 2 two" -split" "
+    $optionsList = @(
+        "1. Choose group from a list"
+        "2. Exit"
+    )
 
-    if ($groupName.Length -eq 0) {
-        Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
-        Write-IndentedLog "Pass valid AD group name or exit the program by typing [Exit/E] (case insensitive)"
-    } elseif ($groupName -in $exitOptions) {
-        Write-IndentedLog "Chose to exit the program" -BackgroundColor Yellow -ForegroundColor Black
-        break # breaks FIRST MENU loop #
-    } elseif ($groupName -in $listGroupsOptions) {
-        Write-IndentedLog "Getting all groups in Active Directory..."
-        Write-Host ""
-        $groupsList = Get-ADGroup -Filter * -SearchBase $OUPath
+    $optionIndex = Show-ArrowMenu -Title "Choose Group Menu" -Menu $optionsList
 
-        Write-IndentedLog "| Active Directory Groups: |"
-        Write-Host ""
-        foreach ($group in $groupsList) {
-            Write-IndentedLog "*" $group.Name
-        }
+    switch ($optionIndex) {
+        0 {
+            Write-IndentedLog "Getting all groups in Active Directory..."
+            Write-Host ""
+            Write-IndentedLog "Choose one of the existing groups from the list below"
 
-        Write-Host ""
-        Write-IndentedLog "Choose one of the existing groups from the list above"
-    } else {
-        Write-IndentedLog "Validating user input..."
-        $groupExists = [bool](Get-ADGroup -Filter "Name -eq '$groupName'")
+            $groupsList = Get-ADGroup -Filter * -SearchBase "OU=User Groups,OU=Groups,OU=Camp,DC=oldcamp,DC=gothic,DC=inc" | ForEach-Object {$_.Name}
 
-        if ($groupExists) {
-            Write-IndentedLog "$groupName found in Active Directory!" -BackgroundColor Green -ForegroundColor White
+            $optionIndex = Show-ArrowMenu -Title "List of Active Directory Groups" -Menu $groupsList
+
+            $groupName = $groupsList[$optionIndex]
 
             # SECOND LOOP #
-            while ($true) {
+            :mainLoop while ($true) {
 
                 # MAIN MENU #
-                $menu = "Main Menu"
-                Write-Host ""
-                Write-IndentedLog ("="*80)
-                Write-IndentedLog (" " * ((80 - [int]$menu.Length) / 2 ) ) $menu
-                Write-IndentedLog ("="*80)
-
-                Write-Host ""
-                Write-IndentedLog "You are currently editing '$groupName' group" -BackgroundColor Yellow -ForegroundColor Black
-                Write-Host ""
-
-                Write-IndentedLog "What operation do you want to perform?"
-                Write-IndentedLog "1. Add Member"
-                Write-IndentedLog "2. Remove Member"
-                Write-IndentedLog "3. Show Group Memebers"
-                Write-IndentedLog "4. Choose Other Group"
-                Write-IndentedLog "5. Exit"
-                # make arrow navigation here or type option number
-
-                # WHITELISTS #
-                $option1 = "1 one add" -split" "
-                $option2 = "2 two remove" -split" "
-                $option3 = "3 three show" -split" "
-                $option4 = "4 four choose" -split" "
-                $option5 = "5 five exit e" -split" "
+                $optionsList = @(
+                    "1. Add Member",
+                    "2. Remove Member",
+                    "3. Show Group Memebers",
+                    "4. Choose Other Group",
+                    "5. Exit"
+                )
 
                 # VARIABLES #
+                $optionIndex = Show-ArrowMenu -Title "Main Menu" -Group $groupName -Menu $optionsList
                 $membersList = Get-ADGroupMember -Identity $groupName | Select-Object Name -ExpandProperty Name
 
-                $userChoice = Read-IndentedLog "Type option number or first word (case insensitive)"
-
-                if ($userChoice.Length -eq 0) {
-                    Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
-                    Write-IndentedLog "Choose one of the available options"
-                
                 # OPTION 1 - ADD MEMBER #
-                } elseif ($userChoice -in $option1) {
-                    Write-IndentedLog "Chose Option 1 - Add Member" -BackgroundColor Yellow -ForegroundColor Black
-                    
-                    # USER VALIDATION LOOP #
-                    while ($true) {
-                        Write-IndentedLog "Provide existing AD user account you wish to add to the '$groupName' group"
-                        $username = Read-IndentedLog "Type username"
-
-                        if ($username.Length -eq 0) {
-                            Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
-                        } elseif ($username -in $membersList) {
-                            Write-IndentedLog "'$username' is already a member of '$groupName' group" -BackgroundColor Red -ForegroundColor White
-                        } else {
-                            try {
-                                Get-ADUser -Identity $username -ErrorAction Stop | Out-Null
-                                Write-IndentedLog "'$username' found in Active Directory database!"  -BackgroundColor Green -ForegroundColor White
-                                Write-IndentedLog "Are you sure you want to add '$username' to the '$groupName' group?"
-                                $decision = Read-IndentedLog "Type [Yes/y] or [No/n]"
-
-                                if ($decision -in $yesList) {
-                                    Write-IndentedLog "Adding '$username' to the '$groupName' group..."  -BackgroundColor Yellow -ForegroundColor Black
-                                    Add-ADGroupMember -Identity $groupName -Members $username
-                                    Write-IndentedLog "Adding member completed sucessfully!" -BackgroundColor Green -ForegroundColor White
-                                } elseif ($decision -in $noList) {
-                                    Write-IndentedLog "Adding user canceled" -BackgroundColor Yellow -ForegroundColor Black
-                                } else {
-                                    Write-IndentedLog "Passed Invalid value!" -BackgroundColor Red -ForegroundColor White
-                                    Write-IndentedLog "User joining aborted"
-                                }
-
-                                break # break user validation loop
-                            } catch {
-                                Write-IndentedLog "'$username' not found in Active Directory database!"  -BackgroundColor Red -ForegroundColor White
-                            }
-                        }
-                    }
-
-                # OPTION 2 - REMOVE MEMBER (or Members!) #
-                } elseif ($userChoice -in $option2) {
-                    Write-IndentedLog "Chose Option 2 - Remove Member" -BackgroundColor Yellow -ForegroundColor Black
-
-                    
-                    while ($true) {
+                switch ($optionIndex) {
+                    0 {
+                        Write-Host ""
+                        Write-IndentedLog "Chose Option 1 - Add Member" -BackgroundColor Yellow -ForegroundColor Black
+                        Write-Host ""
                         
-                        # REMOVE MENU #
-                        $optionsList = @(
-                            "1. List Group Members ",
-                            "2. Type Username ",
-                            "3. Back to Main Menu "
-                        )
+                        # USER VALIDATION LOOP #
+                        while ($true) {
+                            Write-IndentedLog "Provide existing AD user account you wish to add to the '$groupName' group"
+                            Write-IndentedLog "or type [Cancel/C] (case insensitive)"
+                                
+                            $username = Read-IndentedLog "Type username"
 
-                        $optionIndex = Show-ArrowMenu -Title "Remove Menu" -Group $groupName -Menu $optionsList
+                            if ($username.Length -eq 0) {
+                                Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
+                            } elseif ($username -in $membersList) {
+                                Write-IndentedLog "'$username' is already a member of '$groupName' group" -BackgroundColor Red -ForegroundColor White
+                            }  elseif ( ($username -eq "cancel") -or ($username -eq "c") ) {
+                                Write-IndentedLog "Removing user canceled" -BackgroundColor Yellow -ForegroundColor Black
+                                break # breaks user validation loop #
+                            } else {
+                                try {
+                                    Get-ADUser -Identity $username -ErrorAction Stop | Out-Null
+                                    Write-IndentedLog "'$username' found in Active Directory database!"  -BackgroundColor Green -ForegroundColor White
+                                    Write-IndentedLog "Are you sure you want to add '$username' to the '$groupName' group?"
+                                    $decision = Read-IndentedLog "Type [Yes/y] or [No/n]"
 
-                        # CHANGE if/else statement to SWITCH if it works
-
-                        if ($optionIndex -eq 0) {
-                            Write-IndentedLog "| '$groupName' group Members: |"
-                            Write-Host ""
-                            $membersList | ForEach-Object -Process {
-                                    Write-IndentedLog "* $_"
-                                } 
-
-                        } elseif ($optionIndex -eq 1) {
-                            
-                            # USER VALIDATION LOOP #
-                            while ($true) {
-                                Write-IndentedLog "Provide a member of the '$groupName' group you wish to remove"
-                                $username = Read-IndentedLog "Type username"
-
-                                if ($username.Length -eq 0) {
-                                    Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
-                                } else {
-                                    if ($username -in $membersList) {                                
-                                        Write-IndentedLog "'$username' is a member of '$groupName' group!"  -BackgroundColor Green -ForegroundColor White
-                                        Write-IndentedLog "Are you sure you want to remove '$username' from the '$groupName' group?"
-                                        $decision = Read-IndentedLog "Type [Yes/y] or [No/n]"
-
-                                        if ($decision -in $yesList) {
-                                            Write-IndentedLog "Removing '$username' from the '$groupName' group..."  -BackgroundColor Yellow -ForegroundColor Black
-                                            Remove-ADGroupMember -Identity $groupName -Members $username -Confirm:$false
-                                            Write-IndentedLog "Removing member completed sucessfully!" -BackgroundColor Green -ForegroundColor White
-                                        } elseif ($decision -in $noList) {
-                                            Write-IndentedLog "Removing user canceled" -BackgroundColor Yellow -ForegroundColor Black
-                                        } else {
-                                            Write-IndentedLog "Passed Invalid value!" -BackgroundColor Red -ForegroundColor White
-                                            Write-IndentedLog "User removal aborted"
-                                        }
-
-                                        break # break user validation loop
-
+                                    if ($decision -in $yesList) {
+                                        Write-IndentedLog "Adding '$username' to the '$groupName' group..."  -BackgroundColor Yellow -ForegroundColor Black
+                                        Add-ADGroupMember -Identity $groupName -Members $username
+                                        Write-IndentedLog "Adding member completed sucessfully!" -BackgroundColor Green -ForegroundColor White
+                                    } elseif ($decision -in $noList) {
+                                        Write-IndentedLog "Adding user canceled" -BackgroundColor Yellow -ForegroundColor Black
                                     } else {
-                                        Write-IndentedLog "'$username' is not a member of '$groupName' group!" -BackgroundColor Red -ForegroundColor White
+                                        Write-IndentedLog "Passed Invalid value!" -BackgroundColor Red -ForegroundColor White
+                                        Write-IndentedLog "User joining aborted"
                                     }
+
+                                    break # break user validation loop
+
+                                } catch {
+                                    Write-IndentedLog "'$username' not found in Active Directory database!"  -BackgroundColor Red -ForegroundColor White
                                 }
                             }
-
-                        } elseif ($optionIndex -eq 2 ) {
-                            Write-IndentedLog "Getting back to Main Menu" -BackgroundColor Yellow -ForegroundColor Black
-                            break # break remove menu loop
                         }
+                    } 1 { # OPTION 2 - REMOVE MEMBER (or Members!) #
+                        Write-Host ""
+                        Write-IndentedLog "Chose Option 2 - Remove Member" -BackgroundColor Yellow -ForegroundColor Black
+                        Write-Host ""
+
+                        :removeLoop while ($true) {
+                                
+                            # REMOVE MENU #
+                            $optionsList = @(
+                                "1. List Group Members ",
+                                "2. Type Username ",
+                                "3. Back to Main Menu "
+                            )
+
+                            $optionIndex = Show-ArrowMenu -Title "Remove Menu" -Group $groupName -Menu $optionsList
+
+                            switch ($optionIndex) {
+                                0 {
+                                    Write-IndentedLog "| '$groupName' group Members: |"
+                                    Write-Host ""
+                                    $membersList | ForEach-Object -Process {
+                                            Write-IndentedLog "* $_"
+                                        } 
+                                } 1 {
+                                    # USER VALIDATION LOOP #
+                                    while ($true) {
+                                    Write-IndentedLog "Provide a member of the '$groupName' group you wish to remove"
+                                    Write-IndentedLog "or type [Cancel/C] (case insensitive)"
+                                    $username = Read-IndentedLog "Type username"
+
+                                        if ($username.Length -eq 0) {
+                                            Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
+                                        } elseif ( ($username -eq "cancel") -or ($username -eq "c") ) {
+                                            Write-IndentedLog "Removing user canceled" -BackgroundColor Yellow -ForegroundColor Black
+                                            break # breaks user validation loop #
+                                        } else {
+                                            if ($username -in $membersList) {                                
+                                                Write-IndentedLog "'$username' is a member of '$groupName' group!"  -BackgroundColor Green -ForegroundColor White
+                                                Write-IndentedLog "Are you sure you want to remove '$username' from the '$groupName' group?"
+                                                $decision = Read-IndentedLog "Type [Yes/y] or [No/n]"
+
+                                                if ($decision -in $yesList) {
+                                                    Write-IndentedLog "Removing '$username' from the '$groupName' group..."  -BackgroundColor Yellow -ForegroundColor Black
+                                                    Remove-ADGroupMember -Identity $groupName -Members $username -Confirm:$false
+                                                    Write-IndentedLog "Removing member completed sucessfully!" -BackgroundColor Green -ForegroundColor White
+                                                } elseif ($decision -in $noList) {
+                                                    Write-IndentedLog "Removing user canceled" -BackgroundColor Yellow -ForegroundColor Black
+                                                } else {
+                                                    Write-IndentedLog "Passed Invalid value!" -BackgroundColor Red -ForegroundColor White
+                                                    Write-IndentedLog "User removal aborted"
+                                                }
+
+                                                break # breaks user validation loop
+
+                                            } else {
+                                                Write-IndentedLog "'$username' is not a member of '$groupName' group!" -BackgroundColor Red -ForegroundColor White
+                                            }
+                                        }
+                                    }
+                                } 2 {
+                                    Write-IndentedLog "Getting back to Main Menu" -BackgroundColor Yellow -ForegroundColor Black
+                                    break removeLoop # break remove menu loop
+                                }
+                            }
+                        }
+                    } 2 {
+                        Write-Host ""
+                        Write-IndentedLog "Chose Option 3 - Show Group Members" -BackgroundColor Yellow -ForegroundColor Black
+                        Write-Host ""
+                        Write-IndentedLog "'$groupName' group Members:"
+                        Write-Host ""
+                        $membersList | ForEach-Object -Process {
+                                Write-IndentedLog "* $_"
+                            } 
+                    } 3 {
+                        Write-Host ""
+                        Write-IndentedLog "Chose Option 4 - Choose Other Group" -BackgroundColor Yellow -ForegroundColor Black
+                        Write-Host ""
+                        break mainLoop # breaks MAIN MENU loop
+                    } 4 {
+                        Write-Host ""
+                        Write-IndentedLog "Chose Option 5 - Exit" -BackgroundColor Yellow -ForegroundColor Black
+                        Write-Host ""
+                        break firstLoop # Terminates the program
                     }
-
-                } elseif ($userChoice -in $option3) {
-                    Write-IndentedLog "Chose Option 3 - Show Group Members" -BackgroundColor Yellow -ForegroundColor Black
-                    Write-Host ""
-                    Write-IndentedLog "'$groupName' group Members:"
-                    Write-Host ""
-                    $membersList | ForEach-Object -Process {
-                            Write-IndentedLog "* $_"
-                        } 
-
-                } elseif ($userChoice -in $option4) {
-                    Write-IndentedLog "Chose Option 4 - Choose Other Group" -BackgroundColor Yellow -ForegroundColor Black
-                    break # breaks MAIN MENU loop
-                } elseif ($userChoice -in $option5) {
-                    Write-IndentedLog "Chose Option 5 - Exit" -BackgroundColor Yellow -ForegroundColor Black
-                    exit # Terminates the program
-                } else {
-                    Write-IndentedLog "Invalid value!" -BackgroundColor Red -ForegroundColor White
-                    Write-IndentedLog "Passed value is not an option list or name"
-                    Write-IndentedLog "Choose one of the available options"
                 }
-
             }
-                # break
-                # breaks FIRST MENU loop
-                # this break belongs to the if statement
-                # it breaks the nearest while loop and that is the first one
 
-        } else {
-                Write-IndentedLog "Group $groupName doesn't exist in Active Directory!" -BackgroundColor Red -ForegroundColor White
-                Write-IndentedLog "Pass valid AD group name or exit the program by typing [Exit/E] (case insensitive)"
-        }        
-    }
-}
+        } 1 {
+        Write-IndentedLog "Chose to exit the program" -BackgroundColor Yellow -ForegroundColor Black
+        break firstLoop # breaks FIRST MENU loop #
+        }
+    }  
+}     
 
 Write-IndentedLog "Program closed" -BackgroundColor Blue -ForegroundColor White
 

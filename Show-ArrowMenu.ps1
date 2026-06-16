@@ -7,7 +7,7 @@ function Show-ArrowMenu {
     param (
         [string[]]$Menu = "",
         [string]$Title = "",
-        [string]$Group = ""
+        [string]$Group = "None"
     )
 
     # VARIABLES #
@@ -36,9 +36,9 @@ function Show-ArrowMenu {
 
         foreach ($option in $Menu) {
             if ($Menu.IndexOf($option) -eq $selectIndex) {
-                Write-Host $option -BackgroundColor Yellow -ForegroundColor Black
+                Write-IndentedLog $option -BackgroundColor Yellow -ForegroundColor Black
             } else {
-                Write-Host $option -ForegroundColor White
+                Write-IndentedLog $option -ForegroundColor White
             }
         }
             

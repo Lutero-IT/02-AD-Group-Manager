@@ -1,11 +1,13 @@
 TO DO:
 
-3. implement arrow-navigation to the program and remove old text-navigation
-DO IT STEP BY STEP! start with first menu, then next, etc.
 4. add options discussed with gemini ( review chat and note the ideas)
 
 TO COMMIT:
-
+1. changed if/else statements in Removal Menu to switch for better readability
+2. added 'cancel' option during providing user to Remove and Add options ### TEST CANCELING IN ADD OPTION !!!
+3. make use of loop labeling ( :removeLoop :mainLoop )for breaking loop from inside of the switch statement
+4. applied arrow navigation in all menus inside program
 
 DO NOT:
 1.DON'T Make loops for yes/no decision for simplicity
+2.DON'T apply arrow navigation for 'yes/no' confirmation
