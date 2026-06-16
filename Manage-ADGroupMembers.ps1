@@ -95,7 +95,7 @@ Write-IndentedLog "Choose one of the available options below"
                         Write-Host ""
                         Write-IndentedLog "Chose Option 1 - Add Member" -BackgroundColor Yellow -ForegroundColor Black
                         Write-Host ""
-                        
+
                         # USER VALIDATION LOOP #
                         while ($true) {
                             Write-IndentedLog "Provide existing AD user account you wish to add to the '$groupName' group"
@@ -160,38 +160,51 @@ Write-IndentedLog "Choose one of the available options below"
                                         } 
                                 } 1 {
                                     # USER VALIDATION LOOP #
-                                    while ($true) {
-                                    Write-IndentedLog "Provide a member of the '$groupName' group you wish to remove"
-                                    Write-IndentedLog "or type [Cancel/C] (case insensitive)"
-                                    $username = Read-IndentedLog "Type username"
+                                    :removeLoop2 while ($true) {
 
-                                        if ($username.Length -eq 0) {
+                                    # make input accept a list !!!
+                                    # and use foreach to verify each user from a list (handle exceptions like non-existen user) !!!
+                                        Write-IndentedLog "Provide a member or members of the '$groupName' group you wish to remove"
+                                        Write-IndentedLog "(if you want to remove multiple members, separate them with a comma)"
+                                        Write-IndentedLog "or type [Cancel/C] if you want to cancel operation (case insensitive)"
+                                        $username = Read-IndentedLog "Type username "
+                                    # after operater gives user, ask him if he wants to add more users to remove operation or
+                                    # is it all?
+                                    # $username takes string, like: $username = 'Diego, Sly, Fisk'
+                                    # split them and trim. make a list, and then validate each member from a list
+                                    # with the use of foreach loop
+
+                                        $usersList = $username.Split(",").Trim()
+
+                                        if ($usersList.Length -eq 0) {
                                             Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
-                                        } elseif ( ($username -eq "cancel") -or ($username -eq "c") ) {
+                                        } elseif ( ($usersList -eq "cancel") -or ($usersList -eq "c") ) {
                                             Write-IndentedLog "Removing user canceled" -BackgroundColor Yellow -ForegroundColor Black
                                             break # breaks user validation loop #
                                         } else {
-                                            if ($username -in $membersList) {                                
-                                                Write-IndentedLog "'$username' is a member of '$groupName' group!"  -BackgroundColor Green -ForegroundColor White
-                                                Write-IndentedLog "Are you sure you want to remove '$username' from the '$groupName' group?"
-                                                $decision = Read-IndentedLog "Type [Yes/y] or [No/n]"
+                                            foreach ($user in $usersList) {
+                                                if ($user -in $membersList) {                                
+                                                    Write-IndentedLog "'$user' is a member of '$groupName' group!"  -BackgroundColor Green -ForegroundColor White
+                                                    Write-IndentedLog "Are you sure you want to remove '$user' from the '$groupName' group?"
+                                                    $decision = Read-IndentedLog "Type [Yes/y] or [No/n]"
 
-                                                if ($decision -in $yesList) {
-                                                    Write-IndentedLog "Removing '$username' from the '$groupName' group..."  -BackgroundColor Yellow -ForegroundColor Black
-                                                    Remove-ADGroupMember -Identity $groupName -Members $username -Confirm:$false
-                                                    Write-IndentedLog "Removing member completed sucessfully!" -BackgroundColor Green -ForegroundColor White
-                                                } elseif ($decision -in $noList) {
-                                                    Write-IndentedLog "Removing user canceled" -BackgroundColor Yellow -ForegroundColor Black
+                                                    if ($decision -in $yesList) {
+                                                        Write-IndentedLog "Removing '$user' from the '$groupName' group..."  -BackgroundColor Yellow -ForegroundColor Black
+                                                        Remove-ADGroupMember -Identity $groupName -Members $user -Confirm:$false
+                                                        Write-IndentedLog "Removing member completed sucessfully!" -BackgroundColor Green -ForegroundColor White
+                                                    } elseif ($decision -in $noList) {
+                                                        Write-IndentedLog "Removing user canceled" -BackgroundColor Yellow -ForegroundColor Black
+                                                    } else {
+                                                        Write-IndentedLog "Passed Invalid value!" -BackgroundColor Red -ForegroundColor White
+                                                        Write-IndentedLog "User removal aborted"
+                                                    }
                                                 } else {
-                                                    Write-IndentedLog "Passed Invalid value!" -BackgroundColor Red -ForegroundColor White
-                                                    Write-IndentedLog "User removal aborted"
+                                                    Write-IndentedLog "'$user' is not a member of '$groupName' group!" -BackgroundColor Red -ForegroundColor White
                                                 }
-
-                                                break # breaks user validation loop
-
-                                            } else {
-                                                Write-IndentedLog "'$username' is not a member of '$groupName' group!" -BackgroundColor Red -ForegroundColor White
                                             }
+                                            $membersList = Get-ADGroupMember -Identity $groupName | Select-Object Name -ExpandProperty Name
+                                            break removeLoop2 # breaks user validation loop
+
                                         }
                                     }
                                 } 2 {
@@ -237,5 +250,8 @@ Write-IndentedLog "Program closed" -BackgroundColor Blue -ForegroundColor White
 
 1. After you finish create options for MANY users (Add MemberS, Remove MemberS)
 add functionality to add and remove multiple members!
-2. Change all 'Type option number or...' to arrow navigation!
+
+2. Leave type option in remove menu because I want to allow operator to choose multiple users to remove with
+the use of list ( example: give a list of users like 'Diego, Fisk, Sly')
+
 #>

@@ -7,6 +7,8 @@ TO COMMIT:
 2. added 'cancel' option during providing user to Remove and Add options ### TEST CANCELING IN ADD OPTION !!!
 3. make use of loop labeling ( :removeLoop :mainLoop )for breaking loop from inside of the switch statement
 4. applied arrow navigation in all menus inside program
+#### NEW COMMITS ####
+5. added 'remove multiple members' feature by making use of list and foreach loop in 'remove member' option
 
 DO NOT:
 1.DON'T Make loops for yes/no decision for simplicity
