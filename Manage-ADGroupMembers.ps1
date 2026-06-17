@@ -1,12 +1,3 @@
-### IMPORTANT ###
-<#
-!!! TO KEEP IN MIND !!!
-    KEEP THE PROGRAM AS SIMPLE AS POSSIBLE!
-    DO NOT COMPLICATE IT AND DO NOT OVERDO IT!
-
-WHEN YOU WRITE LOGIC AND DO BASIC STYLING, THEN THINK ABOUT DEVELOPING PROGRAM!
-#>
-
 ### HEAD ###
 
 # SCRIPT PARAMETERS ( must be first in script! only comments before allowed! )#
@@ -67,7 +58,7 @@ Write-IndentedLog "Choose one of the available options below"
             Write-Host ""
             Write-IndentedLog "Choose one of the existing groups from the list below"
 
-            $groupsList = Get-ADGroup -Filter * -SearchBase "OU=User Groups,OU=Groups,OU=Camp,DC=oldcamp,DC=gothic,DC=inc" | ForEach-Object {$_.Name}
+            $groupsList = Get-ADGroup -Filter * -SearchBase $OUPath | ForEach-Object {$_.Name}
 
             $optionIndex = Show-ArrowMenu -Title "List of Active Directory Groups" -Menu $groupsList
 
@@ -108,7 +99,7 @@ Write-IndentedLog "Choose one of the available options below"
 
                             if ($usersList.Length -eq 0) {
                                 Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
-                            }  elseif ( ($usersList -eq "cancel") -or ($usersList -eq "c") ) {
+                            }  elseif ( ($username -eq "cancel") -or ($username -eq "c") ) {
                                 Write-IndentedLog "Removing user canceled" -BackgroundColor Yellow -ForegroundColor Black
                                 break # breaks user validation loop #
                             } else {
@@ -127,9 +118,14 @@ Write-IndentedLog "Choose one of the available options below"
 
                                             if ($decision -in $yesList) {
                                                 Write-IndentedLog "Adding '$user' to the '$groupName' group..."  -BackgroundColor Yellow -ForegroundColor Black
-                                                Add-ADGroupMember -Identity $groupName -Members $user
+                                                try {
+                                                Add-ADGroupMember -Identity $groupName -Members $user -ErrorAction Stop
+                                                
                                                 $Indent
                                                 Write-IndentedLog "Adding member completed sucessfully!" -BackgroundColor Green -ForegroundColor White
+                                                } catch {
+                                                Write-IndentedLog "CRITICAL: Failed to add '$user'. Verify your AD permissions." -BackgroundColor Red -ForegroundColor White
+                                                }
                                                 $Indent
                                             } elseif ($decision -in $noList) {
                                                 Write-IndentedLog "Adding user canceled" -BackgroundColor Yellow -ForegroundColor Black
@@ -149,7 +145,9 @@ Write-IndentedLog "Choose one of the available options below"
                                 break addLoop # break user validation loop
                             }
                         }
-                    } 1 { # OPTION 2 - REMOVE MEMBER (or Members!) #
+                    }
+                    
+                    1 { # OPTION 2 - REMOVE MEMBER (or Members!) #
                         Write-Host ""
                         Write-IndentedLog "Chose Option 2 - Remove Member" -BackgroundColor Yellow -ForegroundColor Black
                         Write-Host ""
@@ -172,7 +170,9 @@ Write-IndentedLog "Choose one of the available options below"
                                     $membersList | ForEach-Object -Process {
                                             Write-IndentedLog "* $_"
                                         } 
-                                } 1 {
+                                }
+                                
+                                1 {
                                     # USER VALIDATION LOOP #
                                     :removeLoop2 while ($true) {
 
@@ -185,7 +185,7 @@ Write-IndentedLog "Choose one of the available options below"
 
                                         if ($usersList.Length -eq 0) {
                                             Write-IndentedLog "No input passed" -BackgroundColor Red -ForegroundColor White
-                                        } elseif ( ($usersList -eq "cancel") -or ($usersList -eq "c") ) {
+                                        } elseif ( ($username -eq "cancel") -or ($username -eq "c") ) {
                                             Write-IndentedLog "Removing user canceled" -BackgroundColor Yellow -ForegroundColor Black
                                             break # breaks user validation loop #
                                         } else {
@@ -199,9 +199,13 @@ Write-IndentedLog "Choose one of the available options below"
 
                                                     if ($decision -in $yesList) {
                                                         Write-IndentedLog "Removing '$user' from the '$groupName' group..."  -BackgroundColor Yellow -ForegroundColor Black
-                                                        Remove-ADGroupMember -Identity $groupName -Members $user -Confirm:$false
+                                                        try {
+                                                        Remove-ADGroupMember -Identity $groupName -Members $user -Confirm:$false -ErrorAction Stop
                                                         $Indent
                                                         Write-IndentedLog "Removing member completed sucessfully!" -BackgroundColor Green -ForegroundColor White
+                                                        } catch {
+                                                        Write-IndentedLog "CRITICAL: Failed to remove '$user'. Verify your AD permissions." -BackgroundColor Red -ForegroundColor White
+                                                        }
                                                     } elseif ($decision -in $noList) {
                                                         Write-IndentedLog "Removing user canceled" -BackgroundColor Yellow -ForegroundColor Black
                                                     } else {
@@ -215,7 +219,7 @@ Write-IndentedLog "Choose one of the available options below"
                                                     $Indent
                                                 }
                                             }
-
+                                            $Indent
                                             Write-IndentedLog "No more users left to remove"
 
                                             $membersList = Get-ADGroupMember -Identity $groupName | Select-Object Name -ExpandProperty Name
@@ -223,13 +227,17 @@ Write-IndentedLog "Choose one of the available options below"
 
                                         }
                                     }
-                                } 2 {
+                                }
+                                
+                                2 {
                                     Write-IndentedLog "Getting back to Main Menu" -BackgroundColor Yellow -ForegroundColor Black
                                     break removeLoop # break remove menu loop
                                 }
                             }
                         }
-                    } 2 {
+                    }
+                    
+                    2 {
                         Write-Host ""
                         Write-IndentedLog "Chose Option 3 - Show Group Members" -BackgroundColor Yellow -ForegroundColor Black
                         Write-Host ""
@@ -238,12 +246,16 @@ Write-IndentedLog "Choose one of the available options below"
                         $membersList | ForEach-Object -Process {
                                 Write-IndentedLog "* $_"
                             } 
-                    } 3 {
+                    }
+                    
+                    3 {
                         Write-Host ""
                         Write-IndentedLog "Chose Option 4 - Choose Other Group" -BackgroundColor Yellow -ForegroundColor Black
                         Write-Host ""
                         break mainLoop # breaks MAIN MENU loop
-                    } 4 {
+                    }
+                    
+                    4 {
                         Write-Host ""
                         Write-IndentedLog "Chose Option 5 - Exit" -BackgroundColor Yellow -ForegroundColor Black
                         Write-Host ""
@@ -252,7 +264,9 @@ Write-IndentedLog "Choose one of the available options below"
                 }
             }
 
-        } 1 {
+        }
+        
+        1 {
         Write-IndentedLog "Chose to exit the program" -BackgroundColor Yellow -ForegroundColor Black
         break firstLoop # breaks FIRST MENU loop #
         }
@@ -260,10 +274,3 @@ Write-IndentedLog "Choose one of the available options below"
 }     
 
 Write-IndentedLog "Program closed" -BackgroundColor Blue -ForegroundColor White
-
-
-<# TO DO:
-
-1. After you finish create options for MANY users (Add MemberS, Remove MemberS)
-add functionality to add and remove multiple members!
-#>

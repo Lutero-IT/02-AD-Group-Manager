@@ -54,15 +54,3 @@ function Show-ArrowMenu {
         Clear-Host
     }
 }
-
-<# TO DO:
-    1. Change WinRM protocole (Enter PS-Session) to SSH protocole
-    so the ReadKey method of [Console] class can work on a remote session.
-    2. 
-
-    TO COMMIT:
-        1. Turned script into a function with a parameter. Deleted hardcoded values like $oldCampList.
-        2. Parameter takes menu list as an input and displays all the options
-        with arrow navigation and option highlighting.
-
-#>
